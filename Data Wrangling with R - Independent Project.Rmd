@@ -1,0 +1,126 @@
+---
+title: "Data Wrangling with R"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+## 1. Installing packages 
+We first install tidyverse that will enable us to perform some data wrangling operations
+
+#### Install tidyverse packages in Rstudio Notebook
+```{r}
+install.packages("tidyverse")
+install.packages("magrittr") 
+install.packages("dplyr")
+```
+#### Load libraries 
+```{r}
+library(tidyverse)
+library(magrittr) 
+library(dplyr)
+```
+
+## 2. Data Importation
+
+We need to import the dataset to perform some analysis on the data.
+
+```{r}
+df = read.csv("https://bit.ly/2ZlpzjF")
+df
+```
+## 3. Data Standardization
+
+We need to make sure the data is standardized for use i.e. Make all columns lowercase and remove any trailing white spaces
+
+```{r}
+names(df) <- tolower(names(df))
+names(df) < trimws(names(df))
+names(df)
+```
+
+## 4. Remove duplicates
+
+We identify and remove duplicates that may lead to inaccurate and misleading analyses.
+
+```{r}
+df <- unique(df)
+df[duplicated(df), ]
+```
+
+## 5. Missing Data
+
+We need to identify missing data and check if it's significant to our analysis or we can drop them. 
+#### Identify missing data
+```{r}
+is.na(df)
+
+colSums(is.na(df))
+```
+#### Drop missing data
+From the analysis above we have determined that the missing data is negligible relative to the entire dataset so we can drop them.
+
+```{r}
+df <- na.omit(df)
+
+df %>%
+  filter(churn == 'No')
+```
+
+## 6. Data Analysis
+
+We need to come with strategy for customer retention therefore we need the data to tell us why there are some customers leaving. 
+
+#### Hypotheses
+##### Are the services too expensive?
+##### Is it because the contract is monthly?
+##### Is it because the customer does not have tech support and therefore when they have issues they do not get expert assitance resulting in a poor customer experience?
+
+#### Are the services too expensive?
+
+We need to find if the average total cost for retained and churned.
+
+```{r}
+df %>%
+  group_by(churn) %>%
+  summarize(totalchargesmean = mean(totalcharges))
+```
+From the analysis churn customers on average spent ***13,014.21*** compared to retained who spent an average of ***2,517.37.*** It is therefore evident that the one of the reasons for churn is the total cost.
+
+#### Is it because the contract is monthly?
+
+We also need to find out if most of the churn customers are the month to month contract or those on yearly contracts
+
+```{r}
+df %>%
+  group_by(contract,churn) %>% 
+  summarise(n =n())
+```
+Month-to-month contract. customers have the highest churn at ***1,652.*** One year contract customers have the second highest churn at ***166.*** Two year contract customers have the least churn at 47 customers. From the analysis there is reason to believe that long term customers are more likely to stay as compared to short term customers.
+
+#### Is it because the customer does not have tech support and therefore when they have issues they do not get expert assitance resulting in a poor customer experience?
+
+We need to find out if those customers without a tech support have a higher churn than those with tech support.
+
+```{r}
+df %>%
+  filter(churn =='Yes') %>%
+  group_by(techsupport,churn) %>% 
+  summarise(n =n())
+```
+
+The customers without tech support had the highest churn at ***1,444.*** Those with tech support had ***308.***
+From the analysis it is also clear that the highest churn came from those customers that did not have tech support.
+
+## 7. Conclusion and Recommendations
+
+From the analysis done below are the recommendations:
+```
+1. It is apparent that cost was one of the main reasons why some customers left. We need to do a     further analysis to determine which cost item drove their costs high and recommend to the customer the interventions they can use to reduce the same.
+
+2. It is also clear that short term customers are more likely to leave than long term customers. Therefore, we can create find a way to move month to month contract customers to move to one year or create something like a 6 month package as this would encourage some to be long term customers.
+
+3. It is also clear that those customers without tech support were more likely to leave. We can offer all customers free tech support so as to reduce churn. It is likely that customers that encounter technical issues and don't get a resolution will leave.
+```
+
+ 
